@@ -55,7 +55,7 @@ app.post('/bkash_production',function(req,res){
         var org=msg_json["creditOrganizationName"];
         var timestamp=msg_json["dateTime"];
         var trxId=msg_json["trxID"];
-        con.query("INSERT INTO bkash_production (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
+        con.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
           if (error){
             res.end("error");
             console.log("mysql error");
@@ -87,7 +87,7 @@ app.post('/bkash_production',function(req,res){
 });
 
 app.get("/logs",function(req,res){
-  con.query('SELECT * FROM bkash_production ORDER BY timestamp DESC', function(error, results, fields) {
+  con.query('SELECT * FROM payment_logs ORDER BY timestamp DESC', function(error, results, fields) {
     if(error){
       res.send({
         "status":"couldn't get data"
