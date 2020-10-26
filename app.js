@@ -19,14 +19,26 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
-var con = mysql.createConnection({
+var con1 = mysql.createConnection({
   host: process.env.host,
   user: process.env.user,
   password: process.env.password,
-  database : process.env.database
+  database : process.env.database_1
 });
 
-con.connect(function(err) {
+con1.connect(function(err) {
+  if (err) throw err;
+  console.log("MySQL connected!");
+});
+
+var con2 = mysql.createConnection({
+  host: process.env.host,
+  user: process.env.user,
+  password: process.env.password,
+  database : process.env.database_2
+});
+
+con2.connect(function(err) {
   if (err) throw err;
   console.log("MySQL connected!");
 });
@@ -55,7 +67,7 @@ app.post('/bkash_production',function(req,res){
         var org=msg_json["creditOrganizationName"];
         var timestamp=msg_json["dateTime"];
         var trxId=msg_json["trxID"];
-        con.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
+        con1.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
           if (error){
             res.end("error");
             console.log("mysql error");
@@ -86,8 +98,19 @@ app.post('/bkash_production',function(req,res){
   return;
 });
 
+app.post('/user_serial',function(req,res){
+  var data=req.body;
+  con2.query("INSERT INTO user_serial (uid) VALUES (?)", ['aasas'], function(error, results, fields) {
+    if (error){
+      console.log("mysql error");
+      res.end({error:'database error'})
+    }
+    res.send({serial:results.insertId})
+  });
+});
+
 app.get("/logs",function(req,res){
-  con.query('SELECT * FROM payment_logs ORDER BY timestamp DESC', function(error, results, fields) {
+  con1.query('SELECT * FROM payment_logs ORDER BY timestamp DESC', function(error, results, fields) {
     if(error){
       res.send({
         "status":"couldn't get data"
