@@ -105,7 +105,7 @@ app.post('/user_serial',function(req,res){
       console.log("mysql error");
       res.end({error:'database error'})
     }
-    res.send({serial:results.insertId})
+    res.send({serial:results.insertId+''})
   });
 });
 
