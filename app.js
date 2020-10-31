@@ -87,6 +87,7 @@ app.post('/bkash_production',function(req,res){
                   console.log("db done");
                   res.end("ok");
                 }
+              });
             }).catch(err=>{
               res.end("error")
             })
@@ -96,7 +97,6 @@ app.post('/bkash_production',function(req,res){
         }else{
           res.end("error");
         }
-        });
       }
     }
   });
