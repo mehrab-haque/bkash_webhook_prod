@@ -19,6 +19,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+
+const CODE_DELIMITER="n"
+const products_schema={
+  "1":"https://us-central1-engliplan.cloudfunctions.net/payment"
+}
+
 var con1 = mysql.createConnection({
   host: process.env.host,
   user: process.env.user,
@@ -67,30 +73,29 @@ app.post('/bkash_production',function(req,res){
         var org=msg_json["creditOrganizationName"];
         var timestamp=msg_json["dateTime"];
         var trxId=msg_json["trxID"];
-        con1.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
-          if (error){
-            res.end("error");
-            console.log("mysql error");
+        if(ref.split(CODE_DELIMITER).length==4){
+          var arr=ref.split(CODE_DELIMITER)
+          if(arr[0] in products_schema){
+            axios.post(products_schema[arr[0]],{
+              code:ref
+            }).then(result=>{
+              con1.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
+                if (error){
+                  res.end("error");
+                  console.log("mysql error");
+                }else{
+                  console.log("db done");
+                  res.end("ok");
+                }
+            }).catch(err=>{
+              res.end("error")
+            })
+          }else{
+            res.end("error")
           }
-          console.log("db done");
-          res.end("ok");
-          /*else{
-            console.log("mysql done");
-            if(product!="-"){
-              axios.post(product["endpoint"],{
-                "amount":amount,
-                "reference":ref
-              }).then(result=>{
-                console.log("db done");
-                res.end("ok");
-              }).catch(error=>{
-                console.log("db error");
-                res.end("error");
-              })
-            }else{
-              res.end("ok");
-            }
-          }*/
+        }else{
+          res.end("error");
+        }
         });
       }
     }
