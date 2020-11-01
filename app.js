@@ -74,33 +74,33 @@ app.post('/bkash_production',function(req,res){
         var timestamp=msg_json["dateTime"];
         var trxId=msg_json["trxID"];
         console.log("payment recieved")
-        if(ref.split(CODE_DELIMITER).length==4){
-          var arr=ref.split(CODE_DELIMITER)
-          if(arr[0] in products_schema){
-            axios.post(products_schema[arr[0]],{
-              code:ref
-            }).then(result=>{
-              console.log("posted to product endpoint")
-              con1.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
-                if (error){
-                  console.log("mysql error");
-                  res.end("error");
-                }else{
-                  console.log("db done");
-                  res.end("ok");
-                }
-              });
-            }).catch(err=>{
-              res.end("error")
-            })
+        con1.query("INSERT INTO payment_logs (org,trxID,sender,amount,ref,timestamp) VALUES (?,?,?,?,?,?)", [org,trxId,sender,amount,ref,timestamp], function(error, results, fields) {
+          if (error){
+            console.log("mysql error");
+            res.end("error");
           }else{
-            console.log("product not found")
-            res.end("error")
+            console.log("db done");
+            if(ref.split(CODE_DELIMITER).length==4){
+              var arr=ref.split(CODE_DELIMITER)
+              if(arr[0] in products_schema){
+                axios.post(products_schema[arr[0]],{
+                  code:ref
+                }).then(result=>{
+                  console.log("posted to product endpoint")
+                  res.end('ok')
+                }).catch(err=>{
+                  res.end("error")
+                })
+              }else{
+                console.log("product not found")
+                res.end("error")
+              }
+            }else{
+              console.log("code error")
+              res.end("error");
+            }
           }
-        }else{
-          console.log("code error")
-          res.end("error");
-        }
+        });
       }
     }
   });
