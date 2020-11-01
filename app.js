@@ -84,7 +84,8 @@ app.post('/bkash_production',function(req,res){
               var arr=ref.split(CODE_DELIMITER)
               if(arr[0] in products_schema){
                 axios.post(products_schema[arr[0]],{
-                  code:ref
+                  code:ref,
+                  amount:parseInt(amount)
                 }).then(result=>{
                   console.log("posted to product endpoint")
                   res.end('ok')
